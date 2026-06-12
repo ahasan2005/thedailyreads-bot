@@ -17,3 +17,11 @@ Write a professional English news article based on this:
 """
     )
     return response.text
+res = requests.post(
+    url,
+    auth=(WP_USERNAME, WP_PASSWORD),
+    json=data
+)
+
+print("STATUS:", res.status_code)
+print("RESPONSE:", res.text)
