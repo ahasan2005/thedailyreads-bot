@@ -21,14 +21,23 @@ model = genai.GenerativeModel("gemini-1.5-flash")
 
 
 # ======================
-# GET NEWS (RSS)
+# GET NEWS FROM TRUSTED SOURCES
 # ======================
 def get_news():
-    feed = feedparser.parse("https://news.google.com/rss")
-    
+    feeds = [
+        "http://feeds.bbci.co.uk/news/rss.xml",
+        "http://rss.cnn.com/rss/edition.rss",
+        "https://www.aljazeera.com/xml/rss/all.xml",
+        "https://feeds.reuters.com/reuters/topNews"
+    ]
+
     news_items = []
-    for entry in feed.entries[:5]:
-        news_items.append(entry.title)
+
+    for url in feeds:
+        feed = feedparser.parse(url)
+
+        for entry in feed.entries[:3]:
+            news_items.append(entry.title)
 
     return "\n".join(news_items)
 
@@ -38,18 +47,21 @@ def get_news():
 # ======================
 def generate_article(news):
     prompt = f"""
-You are a professional English news writer.
+You are a professional international news writer.
 
-Read these headlines:
+Use these headlines from BBC, CNN, Al Jazeera, Reuters:
+
 {news}
 
-Write a unique SEO-friendly news article.
+Write a NEW original news article.
 
 Requirements:
-- 800+ words
-- Human tone
-- No copy-paste
-- Add introduction, key points, conclusion
+- 900+ words
+- SEO optimized title
+- Human journalism style
+- Do NOT copy sentences
+- Combine similar news and remove duplicates
+- Add sections: Introduction, Details, Analysis, Conclusion
 """
 
     response = model.generate_content(prompt)
@@ -65,7 +77,7 @@ def post_to_wordpress(title, content):
     data = {
         "title": title,
         "content": content,
-        "status": "draft"   # আগে draft রাখলাম safe এর জন্য
+        "status": "draft"   # safe mode
     }
 
     res = requests.post(
@@ -74,30 +86,29 @@ def post_to_wordpress(title, content):
         json=data
     )
 
-    # 🔥 DEBUG (সবচেয়ে গুরুত্বপূর্ণ অংশ)
     print("STATUS CODE:", res.status_code)
-    print("RESPONSE TEXT:", res.text)
+    print("RESPONSE:", res.text)
 
     return res
 
 
 # ======================
-# MAIN FUNCTION
+# MAIN
 # ======================
 def main():
     print("Bot started...")
 
     news = get_news()
-    print("News fetched")
+    print("News collected")
 
     article = generate_article(news)
     print("Article generated")
 
-    title = "AI Daily News - " + datetime.now().strftime("%Y-%m-%d")
+    title = "Global News Update - " + datetime.now().strftime("%Y-%m-%d")
 
-    res = post_to_wordpress(title, article)
+    post_to_wordpress(title, article)
 
-    print("Finished")
+    print("Done")
 
 
 # ======================
