@@ -20,7 +20,7 @@ def get_news():
     return "\n".join(news_list)
 
 def generate_article(news):
-    model = genai.GenerativeModel("gemini-1.5-flash-latest")
+    model = genai.GenerativeModel("gemini-1.5-flash")
 
     prompt = f"""
 You are a professional news writer.
